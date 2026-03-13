@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
