@@ -1,7 +1,7 @@
-# api/index.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum  # required for serverless
+from mangum import Mangum
+
 from routes import employee, attendance
 
 app = FastAPI()
@@ -17,5 +17,4 @@ app.add_middleware(
 app.include_router(employee.router)
 app.include_router(attendance.router)
 
-# Vercel serverless handler
 handler = Mangum(app)
