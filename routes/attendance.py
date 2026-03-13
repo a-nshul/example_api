@@ -1,35 +1,56 @@
-from fastapi import APIRouter
-from database import cursor, db
-from models import Attendance
+# backend/routes/employee.py
+from fastapi import APIRouter, HTTPException
+from database import db  # <-- updated
+from models import Employee
 
 router = APIRouter()
 
+@router.get("/employees")
+def get_employees():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM employees")
+        employees = cursor.fetchall()
+    finally:
+        cursor.close()
+    return employees
 
-@router.post("/attendance")
-def mark_attendance(att: Attendance):
-
-    cursor.execute(
-        "INSERT INTO attendance (employee_id,date,status) VALUES (%s,%s,%s)",
-        (
-            att.employee_id,
-            att.date,
-            att.status
+@router.post("/employees")
+def add_employee(emp: Employee):
+    cursor = db.cursor()
+    try:
+        # Check if employee exists
+        cursor.execute(
+            "SELECT * FROM employees WHERE employee_id=%s",
+            (emp.employee_id,)
         )
-    )
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Employee already exists")
 
-    db.commit()
+        # Insert employee
+        cursor.execute(
+            """
+            INSERT INTO employees (employee_id, name, email, department)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (emp.employee_id, emp.name, emp.email, emp.department)
+        )
+        db.commit()
+    finally:
+        cursor.close()
 
-    return {"message": "Attendance saved"}
+    return {"message": "Employee added"}
 
+@router.delete("/employees/{employee_id}")
+def delete_employee(employee_id: str):
+    cursor = db.cursor()
+    try:
+        cursor.execute(
+            "DELETE FROM employees WHERE employee_id=%s",
+            (employee_id,)
+        )
+        db.commit()
+    finally:
+        cursor.close()
 
-@router.get("/attendance/{employee_id}")
-def get_attendance(employee_id: str):
-
-    cursor.execute(
-        "SELECT * FROM attendance WHERE employee_id=%s",
-        (employee_id,)
-    )
-
-    records = cursor.fetchall()
-
-    return records
+    return {"message": "Employee deleted"}

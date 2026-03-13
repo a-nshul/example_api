@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from routes import employee, attendance
 from fastapi.middleware.cors import CORSMiddleware
+from routes import employee, attendance  # relative imports work if backend folder is current dir
 
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
